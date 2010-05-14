@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+<string-array name="entries_lyrics_offset">
+    <item>提前1.0秒</item>
+    <item>提前0.5秒</item>
+    <item>不偏移</item>
+    <item>推迟0.5秒</item>
+    <item>推迟1.0秒</item>
+</string-array>
+<string-array name="entriesvalue_lyrics_offset">
+    <item>1000</item>
+    <item>500</item>
+    <item>0</item>
+    <item>-500</item>
+    <item>-1000</item>
+</string-array>
+<string-array name="entries_lyrics_charset">
+    <item>自动识别</item>
+    <item>英语</item>
+    <item>简体中文</item>
+    <item>日语</item>
+    <item>UTF-8</item>
+</string-array>
+<string-array name="entriesvalue_lyrics_charset">
+    <item>auto</item>
+    <item>ISO-8859-1</item>
+    <item>GB2312</item>
+    <item>SHIFT_JIS</item>
+    <item>UTF-8</item>
+</string-array>
+<string-array name="entries_global_refreshrate">
+    <item>极快</item>
+    <item>中等</item>
+    <item>较慢</item>
+</string-array>
+<string-array name="entriesvalue_global_refreshrate">
+    <item>200</item>
+    <item>500</item>
+    <item>1000</item>
+</string-array>
+<string-array name="entries_global_backkey">
+    <item>后台运行</item>
+    <item>提示(默认)</item>
+    <item>直接退出</item>
+</string-array>
+<string-array name="entriesvalue_global_backkey">
+    <item>hide</item>
+    <item>alert</item>
+    <item>exit</item>
+</string-array>
+<string-array name="entries_sleepmode">
+    <item>禁用</item>
+    <item>10分钟</item>
+    <item>20分钟</item>
+    <item>30分钟</item>
+    <item>45分钟</item>
+    <item>60分钟</item>
+</string-array>
+<integer-array name="entriesvalue_sleepmode">
+    <item>0</item>
+    <item>600000</item>
+    <item>1200000</item>
+    <item>1800000</item>
+    <item>2700000</item>
+    <item>3600000</item>
+</integer-array>
+</resources>
