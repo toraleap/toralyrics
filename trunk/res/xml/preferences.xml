@@ -23,6 +23,13 @@
             android:summaryOff="@string/pref_widget_enablegesture_off"
             android:defaultValue="true"
         />
+        <CheckBoxPreference
+            android:key="fullscreen"
+            android:title="@string/pref_widget_fullscreen"
+            android:summaryOn="@string/pref_widget_fullscreen_on"
+            android:summaryOff="@string/pref_widget_fullscreen_off"
+            android:defaultValue="true"
+        />
     </PreferenceCategory>
 	<PreferenceCategory android:title="@string/pref_display_category">
         <CheckBoxPreference

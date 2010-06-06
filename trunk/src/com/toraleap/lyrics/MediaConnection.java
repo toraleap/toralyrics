@@ -55,11 +55,11 @@ public class MediaConnection {
 		        timer = new Timer();
 		        timer.schedule(new TimerTask() {
 		            public void run() {
-		            	if (mediaId != conn.getAudioId() || mediaDuration < 0) {
+		            	if (mediaId != conn.getAudioId()) {
 		            		OnMediaChanged();
 		            		MediaConnection.this.handler.sendEmptyMessage(MESSAGE_MEDIA_CHANGED);
 		            	}
-						if (mediaPosition != getCurrentPosition() || mediaDuration > 0) {
+						if (mediaPosition != getCurrentPosition() && mediaDuration > 0) {
 							mediaPosition = getCurrentPosition();
 		            		MediaConnection.this.handler.sendEmptyMessage(MESSAGE_POSITION_CHANGED);
 						}
@@ -198,7 +198,7 @@ public class MediaConnection {
        	
        	public void play() {
     		try {
-				if (isHtc) mServiceHtc.play(); else mServiceAndroid.next();
+				if (isHtc) mServiceHtc.play(); else mServiceAndroid.play();
 			} catch (RemoteException e) {
 				Log.e("MediaConnection", "Failed to play media");
 			}    		
@@ -273,6 +273,25 @@ public class MediaConnection {
     	conn.stop();
     }
 	
+    public boolean delete(String mediaPath) {
+    	boolean result = false;
+    	File file;
+    	file = new File(mediaPath);
+    	if (file.exists()) result = file.delete();
+    	if (!result) return false;
+    	file = new File(mediaPath.substring(0, mediaPath.lastIndexOf(".")) + ".lrc");
+    	if (file.exists()) result = file.delete();
+    	if (!result) return false; else return true;
+    }
+	
+    public boolean deleteLyrics(String lyricsPath) {
+    	boolean result = false;
+    	File file;
+    	file = new File(lyricsPath);
+    	if (file.exists()) result = file.delete();
+    	if (!result) return false; else return true;
+    }
+    
 	public void OnMediaChanged() {
 		mediaId = conn.getAudioId();
 		mediaTitle = conn.getTrackName();

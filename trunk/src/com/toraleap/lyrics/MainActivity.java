@@ -8,31 +8,38 @@ import java.util.TimerTask;
 import android.app.*;
 import android.appwidget.AppWidgetManager;
 import android.content.*;
-import android.graphics.Paint;
 import android.net.Uri;
 import android.os.*;
 import android.preference.PreferenceManager;
+import android.provider.MediaStore;
 import android.view.*;
 import android.view.GestureDetector.SimpleOnGestureListener;
 import android.view.animation.*;
 import android.widget.*;
 
 public class MainActivity extends Activity {
-	private final int MENU_CONTROL = Menu.FIRST;
-	private final int MENU_PREFERENCE = Menu.FIRST + 1;
-	private final int MENU_SLEEPMODE = Menu.FIRST + 2;
-	private final int MENU_DEBUGINFO = Menu.FIRST + 3;
-	private final int MENU_ABOUT = Menu.FIRST + 4;
-	private final int MENU_EXIT = Menu.FIRST + 5;
-	private final int MENU_PREV = Menu.FIRST + 6;
-	private final int MENU_PLAYPAUSE = Menu.FIRST + 7;
-	private final int MENU_REPLAY = Menu.FIRST + 8;
-	private final int MENU_NEXT = Menu.FIRST + 9;
-	private final int DIALOG_SLEEPMODE = 0;
-	private final int DIALOG_DEBUGINFO = 1;
-	private final int DIALOG_BACKKEY = 2;
-	private final int DIALOG_ABOUT = 3;
-	private final int RESULT_PREFERENCE = 1;
+	private static final int MENU_CONTROL = Menu.FIRST;
+	private static final int MENU_PREFERENCE = Menu.FIRST + 1;
+	private static final int MENU_SLEEPMODE = Menu.FIRST + 2;
+	private static final int MENU_EXPANSION = Menu.FIRST + 3;
+	private static final int MENU_ABOUT = Menu.FIRST + 4;
+	private static final int MENU_EXIT = Menu.FIRST + 5;
+	private static final int MENU_PREV = Menu.FIRST + 6;
+	private static final int MENU_PLAYPAUSE = Menu.FIRST + 7;
+	private static final int MENU_REPLAY = Menu.FIRST + 8;
+	private static final int MENU_NEXT = Menu.FIRST + 9;
+	private static final int MENU_PLAYLIST = Menu.FIRST + 10;
+	private static final int MENU_DELETE = Menu.FIRST + 11;
+	private static final int MENU_DELETELYRICS = Menu.FIRST + 12;
+	private static final int MENU_DEBUGINFO = Menu.FIRST + 13;
+	private static final int MENU_TEST = Menu.FIRST + 14;
+	private static final int DIALOG_SLEEPMODE = 0;
+	private static final int DIALOG_DEBUGINFO = 1;
+	private static final int DIALOG_BACKKEY = 2;
+	private static final int DIALOG_ABOUT = 3;
+	private static final int DIALOG_DELETE = 4;
+	private static final int DIALOG_DELETELYRICS = 5;
+	private static final int RESULT_PREFERENCE = 1;
 	MediaConnection mc;
 	NotificationManager nm;
 	PowerManager.WakeLock wakelock;
@@ -43,6 +50,7 @@ public class MainActivity extends Activity {
 	Timer sleepModeTimer = new Timer();
 	Date sleepModeTime;
 	long sleepModeDelay = 0;
+	String pendingDelete = null;
 	ImageView imgAlbumArt;
 	TextView txtLyricsPrev;
 	TextView txtLyricsCurr;
@@ -92,14 +100,13 @@ public class MainActivity extends Activity {
     @Override
 	protected void onDestroy() {
     	if (wakelock.isHeld()) wakelock.release();
-		mc.release();
-		nm.cancelAll();
+		if (mc != null) mc.release();
+		if (nm != null) nm.cancelAll();
 		super.onDestroy();
 		android.os.Process.killProcess(android.os.Process.myPid());
 	}
 
 	public boolean onCreateOptionsMenu(Menu menu) {
-    	//menu.add(0, MENU_NEXT, 0, R.string.menu_next).setIcon(android.R.drawable.ic_media_next);
 		SubMenu menuControl = menu.addSubMenu(0, MENU_CONTROL, 0, R.string.menu_control).setIcon(android.R.drawable.ic_menu_manage);
 		menuControl.add(0, MENU_PREV, 0, R.string.menu_prev).setIcon(android.R.drawable.ic_media_previous);
 		menuControl.add(0, MENU_PLAYPAUSE, 0, R.string.menu_playpause).setIcon(android.R.drawable.ic_media_play);
@@ -107,7 +114,12 @@ public class MainActivity extends Activity {
 		menuControl.add(0, MENU_NEXT, 0, R.string.menu_next).setIcon(android.R.drawable.ic_media_next);
     	menu.add(0, MENU_PREFERENCE, 0, R.string.menu_preference).setIcon(android.R.drawable.ic_menu_preferences);
     	menu.add(0, MENU_SLEEPMODE, 0, R.string.menu_sleepmode).setIcon(android.R.drawable.ic_menu_today);
-    	menu.add(0, MENU_DEBUGINFO, 0, R.string.menu_debuginfo).setIcon(android.R.drawable.ic_menu_info_details);
+    	SubMenu menuExpansion = menu.addSubMenu(0, MENU_EXPANSION, 0, R.string.menu_expansion).setIcon(android.R.drawable.ic_menu_view);
+    	menuExpansion.add(0, MENU_PLAYLIST, 0, R.string.menu_playlist).setIcon(android.R.drawable.ic_menu_manage);
+    	menuExpansion.add(0, MENU_DELETE, 0, R.string.menu_delete).setIcon(android.R.drawable.ic_menu_delete);
+    	menuExpansion.add(0, MENU_DELETELYRICS, 0, R.string.menu_deletelyrics).setIcon(android.R.drawable.ic_menu_delete);
+    	menuExpansion.add(0, MENU_DEBUGINFO, 0, R.string.menu_debuginfo).setIcon(android.R.drawable.ic_menu_info_details);
+    	menuExpansion.add(0, MENU_TEST, 0, R.string.menu_test).setIcon(android.R.drawable.ic_menu_info_details);
     	menu.add(0, MENU_ABOUT, 0, R.string.menu_about).setIcon(android.R.drawable.ic_menu_help);
     	menu.add(0, MENU_EXIT, 0, R.string.menu_exit).setIcon(android.R.drawable.ic_menu_close_clear_cancel);
     	return true;
@@ -135,14 +147,35 @@ public class MainActivity extends Activity {
     	case MENU_SLEEPMODE:
     		showDialog(DIALOG_SLEEPMODE);
     		break;
-    	case MENU_DEBUGINFO:
-    		showDialog(DIALOG_DEBUGINFO);
-    		break;
     	case MENU_ABOUT:
     		showDialog(DIALOG_ABOUT);
     		break;
     	case MENU_EXIT:
-    		exitActivity();
+        	exitActivity();
+    		break;
+    	case MENU_DELETE:
+    		if (mc != null && mc.isPlaying())
+    			showDialog(DIALOG_DELETE);
+    		else
+    			Toast.makeText(this, R.string.delete_require, Toast.LENGTH_SHORT).show();
+    		break;
+    	case MENU_DELETELYRICS:
+    		if (mc != null && mc.isPlaying())
+    			if (mc.lyrics != null)
+    				showDialog(DIALOG_DELETELYRICS);
+    			else
+    				Toast.makeText(this, R.string.deletelyrics_notexist, Toast.LENGTH_SHORT).show();
+    		else
+    			Toast.makeText(this, R.string.deletelyrics_require, Toast.LENGTH_SHORT).show();
+    		break;
+    	case MENU_DEBUGINFO:
+    		if (mc != null)
+    			showDialog(DIALOG_DEBUGINFO);
+    		break;
+    	case MENU_TEST:
+    		Intent i = new Intent(Intent.ACTION_PICK);
+    		i.setType(MediaStore.Audio.Playlists.CONTENT_TYPE);
+    		startActivityForResult(i, 2);
     		break;
     	}
     	return false;
@@ -150,23 +183,21 @@ public class MainActivity extends Activity {
     
     @Override
 	public void onBackPressed() {
-		if (Preference.backKey.equalsIgnoreCase("hide"))
+		if ("hide".equalsIgnoreCase(Preference.backKey))
 			this.moveTaskToBack(true);
-		else if (Preference.backKey.equalsIgnoreCase("exit"))
+		else if ("exit".equalsIgnoreCase(Preference.backKey))
 			exitActivity();
 		else
 			showDialog(DIALOG_BACKKEY);
 	}
     
-
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
 		if (Preference.enableGesture)
 			return gestureDetector.onTouchEvent(event);
 		else
 			return super.onTouchEvent(event);
-	}
-    
+	} 
 
 	@Override
     protected Dialog onCreateDialog(int id) {
@@ -206,10 +237,40 @@ public class MainActivity extends Activity {
    		case DIALOG_DEBUGINFO:
    			return new AlertDialog.Builder(this)
    				.setIcon(android.R.drawable.ic_dialog_info)
-   				.setTitle(R.string.menu_debuginfo)
-   				.setMessage("2")
+   				.setTitle(R.string.menu_expansion)
+   				.setMessage("DIALOG_DEBUGINFO")
    				.setPositiveButton(R.string.dialog_ok, null)
    				.create();
+  		case DIALOG_DELETE:
+   			return new AlertDialog.Builder(this)
+				.setIcon(android.R.drawable.ic_dialog_alert)
+				.setTitle(R.string.menu_delete)
+				.setMessage("DIALOG_DELETE")
+				.setPositiveButton(R.string.dialog_ok,  new DialogInterface.OnClickListener() {
+					public void onClick(DialogInterface dialog, int which) {
+						if (mc.delete(pendingDelete))
+							Toast.makeText(MainActivity.this, R.string.delete_success, Toast.LENGTH_SHORT).show();
+						else
+							Toast.makeText(MainActivity.this, R.string.delete_failure, Toast.LENGTH_SHORT).show();
+					}
+				})
+				.setNegativeButton(R.string.dialog_cancel, null)
+				.create();
+  		case DIALOG_DELETELYRICS:
+   			return new AlertDialog.Builder(this)
+				.setIcon(android.R.drawable.ic_dialog_alert)
+				.setTitle(R.string.menu_deletelyrics)
+				.setMessage("DIALOG_DELETELYRICS")
+				.setPositiveButton(R.string.dialog_ok,  new DialogInterface.OnClickListener() {
+					public void onClick(DialogInterface dialog, int which) {
+						if (mc.deleteLyrics(pendingDelete))
+							Toast.makeText(MainActivity.this, R.string.deletelyrics_success, Toast.LENGTH_SHORT).show();
+						else
+							Toast.makeText(MainActivity.this, R.string.deletelyrics_failure, Toast.LENGTH_SHORT).show();
+					}
+				})
+				.setNegativeButton(R.string.dialog_cancel, null)
+				.create();
    		case DIALOG_BACKKEY:
    			return new AlertDialog.Builder(this)
 	   			.setIcon(android.R.drawable.ic_dialog_info)
@@ -239,7 +300,15 @@ public class MainActivity extends Activity {
     
     @Override
 	protected void onPrepareDialog(int id, Dialog dialog) {
-    	switch (id) {			
+    	switch (id) {
+   		case DIALOG_DELETE:
+   			pendingDelete = mc.mediaPath;
+   			((AlertDialog)dialog).setMessage(String.format(getString(R.string.delete_message), pendingDelete));
+   			break;
+   		case DIALOG_DELETELYRICS:
+   			pendingDelete = mc.lyrics.lyricsPath;
+   			((AlertDialog)dialog).setMessage(String.format(getString(R.string.deletelyrics_message), pendingDelete));
+   			break;
    		case DIALOG_DEBUGINFO:
    			((AlertDialog)dialog).setMessage(
 				String.format(getString(R.string.debug_string), 
@@ -248,6 +317,7 @@ public class MainActivity extends Activity {
 				notiLyrics, (mc.lyrics==null?getString(R.string.lyrics_not_exist):mc.lyrics.lyricsPath),
 				(mc.lyrics==null?getString(R.string.lyrics_not_exist):mc.lyrics.encoding),
 				sleepModeTime));
+   			break;
     	}
     	super.onPrepareDialog(id, dialog);
 	}
@@ -273,15 +343,15 @@ public class MainActivity extends Activity {
 			}
 		} else imgAlbumArt.setImageURI(null);
 		setTitle(String.format(getString(R.string.main_titlebar), mc.mediaTitle, mc.mediaArtist));
-		txtLyricsPrev.setText(splitLyrics(mc.mediaTitle, 16));
-		txtLyricsCurr.setText(splitLyrics(getString(R.string.lyrics_not_exist), 20));
-		txtLyricsNext.setText(splitLyrics(mc.mediaArtist, 16));
+		txtLyricsPrev.setText(LyricsSplitter.split((mc.lyrics==null?getString(R.string.lyrics_not_exist):""), 20));
+		txtLyricsCurr.setText(LyricsSplitter.split(mc.mediaTitle, 16));
+		txtLyricsNext.setText(LyricsSplitter.split(mc.mediaArtist, 16));
 
 		// 更新桌面小工具
        	RemoteViews widgetViews = new RemoteViews(getPackageName(), R.layout.appwidget);
-		widgetViews.setTextViewText(R.id.widgettextprev, splitLyrics(mc.mediaTitle, 16));
-	   	widgetViews.setTextViewText(R.id.widgettextcurr, splitLyrics(getString(R.string.lyrics_not_exist), 20));
-	   	widgetViews.setTextViewText(R.id.widgettextnext, splitLyrics(mc.mediaArtist, 16));
+	   	widgetViews.setTextViewText(R.id.widgettextprev, LyricsSplitter.split((mc.lyrics==null?getString(R.string.lyrics_not_exist):""), 20));
+		widgetViews.setTextViewText(R.id.widgettextcurr, LyricsSplitter.split(mc.mediaTitle, 16));
+	   	widgetViews.setTextViewText(R.id.widgettextnext, LyricsSplitter.split(mc.mediaArtist, 16));
 	   	widgetViews.setOnClickPendingIntent(R.id.widgettextprev, n.contentIntent);
 	   	widgetViews.setOnClickPendingIntent(R.id.widgettextcurr, n.contentIntent);
 	   	widgetViews.setOnClickPendingIntent(R.id.widgettextnext, n.contentIntent);
@@ -310,9 +380,9 @@ public class MainActivity extends Activity {
        	nm.notify(0, n);
 
    		// 更新Activity界面
-   		txtLyricsPrev.setText(splitLyrics(mc.mediaLyricsContext.prev, 16));
-   		txtLyricsCurr.setText(splitLyrics(notiLyrics, 20));
-   		txtLyricsNext.setText(splitLyrics(mc.mediaLyricsContext.next, 16));
+   		txtLyricsPrev.setText(LyricsSplitter.split(mc.mediaLyricsContext.prev, 16));
+   		txtLyricsCurr.setText(LyricsSplitter.split(notiLyrics, 20));
+   		txtLyricsNext.setText(LyricsSplitter.split(mc.mediaLyricsContext.next, 16));
    		if (Preference.showAnimation) {
 			int[] anims = {R.anim.lyrics1, R.anim.lyrics2, R.anim.lyrics3};
 	   		txtLyricsPrev.startAnimation(AnimationUtils.loadAnimation(this, R.anim.flyout));
@@ -322,9 +392,9 @@ public class MainActivity extends Activity {
    		
    		// 更新桌面小工具
        	RemoteViews widgetViews = new RemoteViews(getPackageName(), R.layout.appwidget);
-       	widgetViews.setTextViewText(R.id.widgettextprev, splitLyrics(mc.mediaLyricsContext.prev, 16));
-       	widgetViews.setTextViewText(R.id.widgettextcurr, splitLyrics(notiLyrics, 20));
-       	widgetViews.setTextViewText(R.id.widgettextnext, splitLyrics(mc.mediaLyricsContext.next, 16));
+       	widgetViews.setTextViewText(R.id.widgettextprev, LyricsSplitter.split(mc.mediaLyricsContext.prev, 16));
+       	widgetViews.setTextViewText(R.id.widgettextcurr, LyricsSplitter.split(notiLyrics, 20));
+       	widgetViews.setTextViewText(R.id.widgettextnext, LyricsSplitter.split(mc.mediaLyricsContext.next, 16));
 	   	widgetViews.setOnClickPendingIntent(R.id.widgettextprev, n.contentIntent);
 	   	widgetViews.setOnClickPendingIntent(R.id.widgettextcurr, n.contentIntent);
 	   	widgetViews.setOnClickPendingIntent(R.id.widgettextnext, n.contentIntent);
@@ -345,76 +415,43 @@ public class MainActivity extends Activity {
     
     private void updatePreference() {
     	SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-    	Preference.splitLyrics = prefs.getBoolean("splitlyrics", true);
     	Preference.showAnimation = prefs.getBoolean("showanimation", true);
     	Preference.enableGesture = prefs.getBoolean("enablegesture", true);
+    	Preference.fullScreen = prefs.getBoolean("fullscreen", true);
     	Preference.showPosition = prefs.getBoolean("showposition", true);
     	Preference.tickerText = prefs.getBoolean("tickertext", false);
     	Preference.keepScreen = prefs.getBoolean("keepscreen", true);
     	Preference.backKey = prefs.getString("backkey", "alert");
-    	Preference.density = getResources().getDisplayMetrics().density;
     	if (Preference.keepScreen) {
     		if (!wakelock.isHeld()) wakelock.acquire();
     	} else {
     		if (wakelock.isHeld()) wakelock.release();
     	}
-    	
+    	if (Preference.fullScreen) {
+	        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+	    } else {
+	        getWindow().setFlags(0, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+    	}
+
     	MediaConnection.Preference.refreshRate = Long.valueOf(prefs.getString("refreshrate", "200"));
+
+    	LyricsSplitter.Preference.splitLyrics = prefs.getBoolean("splitlyrics", true);
+    	LyricsSplitter.Preference.density = getResources().getDisplayMetrics().density;
     	
     	LyricsParser.Preference.doubleLine = prefs.getBoolean("doubleline", true);
     	LyricsParser.Preference.skipBlank = prefs.getBoolean("skipblank", true);
     	LyricsParser.Preference.offset = Long.valueOf(prefs.getString("offset", "0"));
     	LyricsParser.Preference.charset = prefs.getString("chatset", "auto");
     }
-	
-	private String splitLyrics(String line, float dip) {
-		if (!Preference.splitLyrics) return line;
-		if (measureString(line, dip) <= 294)
-			return line;
-		else {
-			int half = line.length() / 2;
-			for (int i = 0; i < half / 2; i++) {
-				int pos = half - i;
-				char c = line.charAt(pos);
-				if (c == ' ' || c == '　') {
-					return line.substring(0, pos).trim() + "\n" + line.substring(pos + 1, line.length()).trim();
-				} else if (c == '(' || c == '<' || c == '[' || c == '{' || c == '（' || c == '【' || c == '〖' || c == '「' || c == '/') {
-					return line.substring(0, pos).trim() + "\n" + line.substring(pos, line.length()).trim();
-				} else if (c == ')' || c == '>' || c == ']' || c == '}' || c == '）' || c == '】' || c == '〗' || c == '」' || c == ',' || c == '，' || c == '。') {
-					return line.substring(0, pos + 1).trim() + "\n" + line.substring(pos + 1, line.length()).trim();
-				}
-				pos = half + i + 1;
-				c = line.charAt(pos);
-				if (c == ' ' || c == '　') {
-					return line.substring(0, pos).trim() + "\n" + line.substring(pos + 1, line.length()).trim();
-				} else if (c == '(' || c == '<' || c == '[' || c == '{' || c == '（' || c == '【' || c == '〖' || c == '「' || c == '/') {
-					return line.substring(0, pos).trim() + "\n" + line.substring(pos, line.length()).trim();
-				} else if (c == ')' || c == '>' || c == ']' || c == '}' || c == '）' || c == '】' || c == '〗' || c == '」' || c == ',' || c == '，' || c == '。') {
-					return line.substring(0, pos + 1).trim() + "\n" + line.substring(pos + 1, line.length()).trim();
-				}
-			}
-			return line.substring(0, half) + "\n" + line.substring(half, line.length());
-		}
-	}
-	
-	private float measureString(String line, float dip) {
-		Paint mTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-		mTextPaint.setTextSize(dip2px(dip));
-		return mTextPaint.measureText(line);
-	}
-	
-	private float dip2px(float px) {
-		return px * Preference.density;
-	}
-			   
+
     private void exitActivity() {
 		finish();    	
     }
 
     private class ControlGestureDetector extends SimpleOnGestureListener {
     	private static final int SWIPE_MIN_DISTANCE = 120;
-    	private static final int SWIPE_MAX_DISTANCE = 40;
-    	private static final int SWIPE_THRESHOLD_VELOCITY = 200;
+    	private static final int SWIPE_MAX_DISTANCE = 80;
+    	private static final int SWIPE_THRESHOLD_VELOCITY = 160;
 
 //		@Override
 //		public boolean onDown(MotionEvent e) {
@@ -456,13 +493,12 @@ public class MainActivity extends Activity {
     }
 
     public static class Preference {
-		static boolean splitLyrics = true;
     	static boolean showAnimation = true;
     	static boolean enableGesture = true;
+    	static boolean fullScreen = true;
     	static boolean showPosition = true;
     	static boolean tickerText = false;
     	static boolean keepScreen = true;
     	static String backKey = "alert";
-    	static float density;
     }
 }
