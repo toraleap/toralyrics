@@ -58,7 +58,7 @@ public class LyricsParser {
 		try {
 			in = new BufferedInputStream(new FileInputStream(lyricsPath));
 	        ByteArrayOutputStream out = new ByteArrayOutputStream(1024);         
-	        byte[] temp = new byte[1024];      
+	        byte[] temp = new byte[1024];
 	        int size = 0;      
 	        while ((size = in.read(temp)) != -1) {
 	            out.write(temp, 0, size);      
@@ -66,7 +66,7 @@ public class LyricsParser {
 	        in.close();      
 	        byte[] content = out.toByteArray();
 	        String encoding;
-	        if (Preference.charset.equalsIgnoreCase("auto")) {
+	        if ("auto".equalsIgnoreCase(Preference.charset)) {
 		        UniversalDetector detector = new UniversalDetector(null);
 		        detector.handleData(content, 0, content.length);
 		        detector.dataEnd();
@@ -74,12 +74,13 @@ public class LyricsParser {
 	        } else {
 	        	encoding = Preference.charset;
 	        }
-			LyricsParser lyricsParser = new LyricsParser(new String(content, 0, content.length, encoding));
+	        if (encoding == null) encoding = "GB2312";
+        	LyricsParser lyricsParser = new LyricsParser(new String(content, 0, content.length, encoding));
 			lyricsParser.encoding = encoding;
 			lyricsParser.lyricsPath = lyricsPath;
 	        return lyricsParser;
 		} catch (IOException e) {
-			return new LyricsParser("");
+			return null;
 		}
 	}
 	
