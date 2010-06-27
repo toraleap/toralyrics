@@ -19,16 +19,16 @@ import android.widget.*;
 
 public class MainActivity extends Activity {
 	private static final int MENU_CONTROL = Menu.FIRST;
-	private static final int MENU_PREFERENCE = Menu.FIRST + 1;
+	private static final int MENU_FOLDER = Menu.FIRST + 1;
 	private static final int MENU_SLEEPMODE = Menu.FIRST + 2;
 	private static final int MENU_EXPANSION = Menu.FIRST + 3;
-	private static final int MENU_ABOUT = Menu.FIRST + 4;
-	private static final int MENU_EXIT = Menu.FIRST + 5;
-	private static final int MENU_PREV = Menu.FIRST + 6;
-	private static final int MENU_PLAYPAUSE = Menu.FIRST + 7;
-	private static final int MENU_REPLAY = Menu.FIRST + 8;
-	private static final int MENU_NEXT = Menu.FIRST + 9;
-	private static final int MENU_PLAYLIST = Menu.FIRST + 10;
+	private static final int MENU_PREFERENCE = Menu.FIRST + 4;
+	private static final int MENU_ABOUT = Menu.FIRST + 5;
+	private static final int MENU_EXIT = Menu.FIRST + 6;
+	private static final int MENU_PREV = Menu.FIRST + 7;
+	private static final int MENU_PLAYPAUSE = Menu.FIRST + 8;
+	private static final int MENU_REPLAY = Menu.FIRST + 9;
+	private static final int MENU_NEXT = Menu.FIRST + 10;
 	private static final int MENU_DELETE = Menu.FIRST + 11;
 	private static final int MENU_DELETELYRICS = Menu.FIRST + 12;
 	private static final int MENU_DEBUGINFO = Menu.FIRST + 13;
@@ -40,7 +40,7 @@ public class MainActivity extends Activity {
 	private static final int DIALOG_DELETE = 4;
 	private static final int DIALOG_DELETELYRICS = 5;
 	private static final int RESULT_PREFERENCE = 1;
-	MediaConnection mc;
+	public static MediaConnection mc;
 	NotificationManager nm;
 	PowerManager.WakeLock wakelock;
 	GestureDetector gestureDetector = new GestureDetector(new ControlGestureDetector());
@@ -112,14 +112,16 @@ public class MainActivity extends Activity {
 		menuControl.add(0, MENU_PLAYPAUSE, 0, R.string.menu_playpause).setIcon(android.R.drawable.ic_media_play);
 		menuControl.add(0, MENU_REPLAY, 0, R.string.menu_replay).setIcon(android.R.drawable.ic_media_rew);
 		menuControl.add(0, MENU_NEXT, 0, R.string.menu_next).setIcon(android.R.drawable.ic_media_next);
-    	menu.add(0, MENU_PREFERENCE, 0, R.string.menu_preference).setIcon(android.R.drawable.ic_menu_preferences);
-    	menu.add(0, MENU_SLEEPMODE, 0, R.string.menu_sleepmode).setIcon(android.R.drawable.ic_menu_today);
+    	menu.add(0, MENU_FOLDER, 0, R.string.menu_folder).setIcon(android.R.drawable.ic_menu_agenda);
+    	menu.add(0, MENU_SLEEPMODE, 0, R.string.menu_sleepmode).setIcon(android.R.drawable.ic_menu_recent_history);
     	SubMenu menuExpansion = menu.addSubMenu(0, MENU_EXPANSION, 0, R.string.menu_expansion).setIcon(android.R.drawable.ic_menu_view);
-    	menuExpansion.add(0, MENU_PLAYLIST, 0, R.string.menu_playlist).setIcon(android.R.drawable.ic_menu_manage);
+    	//SubMenu menuPlaylists = menu.addSubMenu(0, MENU_PLAYLIST, 0, R.string.menu_playlist).setIcon(android.R.drawable.ic_menu_manage);
+    	//MediaUtils.makePlaylistMenu(this, menuPlaylists);
     	menuExpansion.add(0, MENU_DELETE, 0, R.string.menu_delete).setIcon(android.R.drawable.ic_menu_delete);
     	menuExpansion.add(0, MENU_DELETELYRICS, 0, R.string.menu_deletelyrics).setIcon(android.R.drawable.ic_menu_delete);
     	menuExpansion.add(0, MENU_DEBUGINFO, 0, R.string.menu_debuginfo).setIcon(android.R.drawable.ic_menu_info_details);
     	menuExpansion.add(0, MENU_TEST, 0, R.string.menu_test).setIcon(android.R.drawable.ic_menu_info_details);
+    	menu.add(0, MENU_PREFERENCE, 0, R.string.menu_preference).setIcon(android.R.drawable.ic_menu_preferences);
     	menu.add(0, MENU_ABOUT, 0, R.string.menu_about).setIcon(android.R.drawable.ic_menu_help);
     	menu.add(0, MENU_EXIT, 0, R.string.menu_exit).setIcon(android.R.drawable.ic_menu_close_clear_cancel);
     	return true;
@@ -139,14 +141,23 @@ public class MainActivity extends Activity {
     	case MENU_NEXT:
     		mc.next();
     		break;
+    	case MENU_FOLDER:
+    	{
+    		Intent intent = new Intent(this, FolderBrowserActivity.class);
+    		intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+    		startActivity(intent);
+    		break;
+    	}
+    	case MENU_SLEEPMODE:
+    		showDialog(DIALOG_SLEEPMODE);
+    		break;
     	case MENU_PREFERENCE:
+    	{
     		Intent intent = new Intent(this, LyricsPreferenceActivity.class);
     		intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
     		startActivityForResult(intent, RESULT_PREFERENCE);
     		break;
-    	case MENU_SLEEPMODE:
-    		showDialog(DIALOG_SLEEPMODE);
-    		break;
+    	}
     	case MENU_ABOUT:
     		showDialog(DIALOG_ABOUT);
     		break;
@@ -173,9 +184,9 @@ public class MainActivity extends Activity {
     			showDialog(DIALOG_DEBUGINFO);
     		break;
     	case MENU_TEST:
-    		Intent i = new Intent(Intent.ACTION_PICK);
-    		i.setType(MediaStore.Audio.Playlists.CONTENT_TYPE);
-    		startActivityForResult(i, 2);
+//    		Intent i = new Intent(Intent.ACTION_PICK);
+//    		i.setType(MediaStore.Audio.Playlists.CONTENT_TYPE);
+//    		startActivityForResult(i, 2);
     		break;
     	}
     	return false;

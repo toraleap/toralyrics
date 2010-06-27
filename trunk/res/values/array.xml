@@ -64,4 +64,42 @@
     <item>2700000</item>
     <item>3600000</item>
 </integer-array>
+<string-array name="entries_folderbrowser_searchmode">
+    <item>包括子文件夹</item>
+    <item>仅选择的文件夹</item>
+</string-array>
+<string-array name="entriesvalue_folderbrowser_searchmode">
+    <item>iterate</item>
+    <item>single</item>
+</string-array>
+<string-array name="entries_folderbrowser_sortmode">
+    <item>文件名称</item>
+    <item>修改日期</item>
+    <item>自然顺序</item>
+</string-array>
+<string-array name="entriesvalue_folderbrowser_sortmode">
+    <item>filename</item>
+    <item>modified</item>
+    <item>original</item>
+</string-array>
+<string-array name="entries_folderbrowser_filetype">
+    <item>所有音乐文件</item>
+    <item>不包括伴奏音乐</item>
+    <item>仅伴奏音乐</item>
+    <item>自定义过滤器</item>
+</string-array>
+<string-array name="entriesvalue_folderbrowser_filetype">
+    <item>\\.(?:mp3|mp4|m4a|wav|aac|amr|wma|ogg)$</item>
+    <item>^(?!.*?instrumental)(?!.*?karaoke).*?\\.(?:mp3|mp4|m4a|wav|aac|amr|wma|ogg)$</item>
+    <item>(?:instrumental|karaoke).*?\\.(?:mp3|mp4|m4a|wav|aac|amr|wma|ogg)$</item>
+    <item>customize</item>
+</string-array>
+<string-array name="entries_folderbrowser_addmode">
+    <item>跳过重复歌曲</item>
+    <item>清空现有列表</item>
+</string-array>
+<string-array name="entriesvalue_folderbrowser_addmode">
+    <item>ignore</item>
+    <item>clear</item>
+</string-array>
 </resources>

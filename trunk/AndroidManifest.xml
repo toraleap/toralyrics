@@ -11,6 +11,7 @@
             </intent-filter>
         </activity>
 		<activity android:name=".LyricsPreferenceActivity" android:launchMode="standard"/>
+		<activity android:name=".FolderBrowserActivity" android:launchMode="standard"/>
 		<receiver android:name=".LyricsWidget" android:label="@string/widget_name">
 			<intent-filter>
 				<action android:name="android.appwidget.action.APPWIDGET_UPDATE" />

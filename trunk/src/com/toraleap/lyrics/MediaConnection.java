@@ -1,6 +1,8 @@
 package com.toraleap.lyrics;
 
 import java.io.File;
+import java.lang.reflect.Array;
+import java.util.Collections;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -24,12 +26,12 @@ public class MediaConnection {
 	public static final int MESSAGE_MEDIA_CHANGED = 2;
 	public static final int MESSAGE_LYRICS_CHANGED = 3;
 	public static final int MESSAGE_POSITION_CHANGED = 4;
-	
+
+	MediaPlayerServiceConnection conn;
 	Context context;
 	Handler handler;
 	Timer timer;
 	ContentResolver resolver;
-    MediaPlayerServiceConnection conn;
 	boolean isHtc;
 	Handler bindHandler;
     
@@ -223,6 +225,36 @@ public class MediaConnection {
 				Log.e("MediaConnection", "Failed to stop Playback");
 			}    		
     	}
+    	
+    	public void open(long[] list, int action) {
+    		try {
+				if (isHtc) {
+					int[] intlist = new int[list.length];
+					for (int i = 0; i < list.length; i++) intlist[i] = (int)list[i];
+					mServiceHtc.open(intlist, action);
+				}
+				else {
+					mServiceAndroid.open(list, action);
+				}
+			} catch (RemoteException e) {
+				Log.e("MediaConnection", "Failed to open");
+			}
+    	}
+    	
+    	public void enqueue(long[] list, int action) {
+    		try {
+				if (isHtc) {
+					int[] intlist = new int[list.length];
+					for (int i = 0; i < list.length; i++) intlist[i] = (int)list[i];
+					mServiceHtc.enqueue(intlist, action);
+				}
+				else {
+					mServiceAndroid.enqueue(list, action);
+				}
+			} catch (RemoteException e) {
+				Log.e("MediaConnection", "Failed to enqueue");
+			}
+    	}
     }
     
     private String getMediaPath(long id) {
@@ -271,6 +303,14 @@ public class MediaConnection {
    	
     public void stop() {
     	conn.stop();
+    }
+
+    public void open(long[] list, int action) {
+    	conn.open(list, action);
+    }
+
+    public void enqueue(long[] list, int action) {
+    	conn.enqueue(list, action);
     }
 	
     public boolean delete(String mediaPath) {

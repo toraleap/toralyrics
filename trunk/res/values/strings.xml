@@ -3,7 +3,7 @@
 <string name="debug_string">媒体编号:\t%d\n歌曲标题:\t%s\n主艺术家:\t%s\n所属专辑:\t%s\n播放进度:\t%d / %d\n歌曲路径:\t%s\n当前歌词:\t%s\n歌词路径:\t%s\n歌词字符集:\t%s\n定时关机:\t%tc</string>
 <string name="app_name">toralyrics</string>
 <string name="widget_name">toralyrics 桌面插件</string>
-<string name="app_message">toralyrics是一个简单的歌词显示辅助软件，为Android和HTC的内置播放器提供多种形式的歌词显示，同时带有睡眠模式功能。\n\n测试版目前仅读取与歌曲文件同名的lrc文件，支持一行多个时间标签和乱序标签，以及整体偏移量。\n\n版本 0.10 alpha\n惊羽九天</string>
+<string name="app_message">toralyrics是一个简单的歌词显示辅助软件，为Android和HTC的内置播放器提供多种形式的歌词显示，同时带有睡眠模式功能。\n\n测试版目前仅读取与歌曲文件同名的lrc文件，支持一行多个时间标签和乱序标签，以及整体偏移量。\n\n版本 0.20 alpha\n惊羽九天</string>
 <string name="main_titlebar">%s   %s</string>
 <string name="dialog_ok">确定</string>
 <string name="dialog_cancel">取消</string>
@@ -20,7 +20,9 @@
 <string name="menu_playpause">播放/暂停 (手势:上)</string>
 <string name="menu_replay">重播此曲 (手势:下)</string>
 <string name="menu_next">下一曲 (手势:左)</string>
-<string name="menu_playlist">播放列表管理</string>
+<string name="menu_folder">文件夹</string>
+<string name="menu_playlist_queue">正在播放</string>
+<string name="menu_playlist_new">新建播放列表</string>
 <string name="menu_delete">删除当前歌曲及歌词</string>
 <string name="menu_deletelyrics">仅删除当前歌词</string>
 <string name="menu_debuginfo">调试信息</string>
@@ -74,4 +76,21 @@
 <string name="pref_global_refreshrate_sum">较快的刷新速率可能会增加系统负担</string>
 <string name="pref_global_backkey">返回键响应</string>
 <string name="pref_global_backkey_sum">确定当点击返回键时的响应</string>
+
+<string name="folderbrowser_message">点击进入文件夹，长按选择</string>
+<string name="folderbrowser_menu_searchmode">搜索模式</string>
+<string name="folderbrowser_menu_addmode">添加选项</string>
+<string name="folderbrowser_menu_sortmode">排序方式(TODO)</string>
+<string name="folderbrowser_menu_filetype">音乐格式</string>
+<string name="folderbrowser_return_parent">(返回上级文件夹)</string>
+<string name="folderbrowser_select_playlist">添加到播放列表</string>
+<string name="folderbrowser_progress_title">正在搜索歌曲</string>
+<string name="folderbrowser_progress_search">搜索到 %d 个文件...</string>
+<string name="folderbrowser_progress_query">查询媒体库成功 %d 个...</string>
+<string name="folderbrowser_progress_addtoplaylist">加入列表 %d 个，排除重复 %d 个...</string>
+<string name="folderbrowser_progress_finished">已将%d首歌曲加入%s。</string>
+<string name="folderbrowser_playlist_new">新建播放列表</string>
+<string name="folderbrowser_playlist_new_message">输入新的播放列表名称</string>
+<string name="folderbrowser_filetype_customize">自定义文件格式</string>
+<string name="folderbrowser_filetype_customize_message">文件名须满足的正则表达式，不区分大小写。以下是两个示例。\n\n指定文件扩展名:\n\\.(?:mp4|m4a)$\n不包含某字串:\n^(?!.*?instrumental).*?$</string>
 </resources>
